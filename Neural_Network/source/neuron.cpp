@@ -4,7 +4,7 @@
 #include "../header/struct.h"
 #include "../header/neuron.h"
 
-void initilisation(int nbr_neurones, int nbr_poids){
+void init_layer(int nbr_neurones, int nbr_poids){
     srand((time(0)));
 
     Neuron** neurone = new Neuron*[nbr_neurones];
@@ -22,10 +22,11 @@ void initilisation(int nbr_neurones, int nbr_poids){
 
 }
 
-void liberer(Neuron **neurone, int nbr_neurones){
+void release_layer(Neuron **neurone, int nbr_neurones){
     for (int i = 0; i < nbr_neurones; ++i) {
         delete neurone[i];
     }
 
     delete[] neurone;
 }
+
