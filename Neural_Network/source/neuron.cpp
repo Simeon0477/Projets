@@ -4,7 +4,7 @@
 #include "../header/struct.h"
 #include "../header/neuron.h"
 
-void init_layer(int nbr_neurones, int nbr_poids){
+Couche init_layer(int nbr_neurones, int nbr_poids){
     srand((time(0)));
 
     Neuron** neurone = new Neuron*[nbr_neurones];
@@ -20,6 +20,13 @@ void init_layer(int nbr_neurones, int nbr_poids){
         neurone[i] -> sortie = 0.0f;
     }
 
+    release_layer(neurone, nbr_neurones);
+
+    Couche layer;
+    layer.nombre_neurones = nbr_neurones;
+    layer.neurones = *neurone;
+
+    return layer;
 }
 
 void release_layer(Neuron **neurone, int nbr_neurones){
@@ -30,3 +37,11 @@ void release_layer(Neuron **neurone, int nbr_neurones){
     delete[] neurone;
 }
 
+void init_NN(int *nbr_neurones, int nbr_couche){
+    RN network;
+    network.nombre_couches = nbr_couche;
+
+    for(int i=0; i<nbr_couche; i++){
+        network.couches[i] = init_layer(nbr_neurones[i], 1);
+    }
+}
