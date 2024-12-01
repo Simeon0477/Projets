@@ -12,6 +12,7 @@ typedef struct Neuron Neuron;
 struct Couche{
     int nombre_neurones;
     Neuron *neurones;
+    int nombre_poids;
 };
 
 typedef struct Couche Couche;
