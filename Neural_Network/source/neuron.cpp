@@ -25,6 +25,7 @@ void init_layer(Couche &layer,int nbr_neurones, int nbr_poids){
     }
 
     layer.nombre_neurones = nbr_neurones;
+    layer.nombre_poids = nbr_poids;
 }
 
 void release_layer(Couche &layer, int nbr_neurones){
@@ -59,11 +60,11 @@ float sigmoid(float x){
     return 1.0 / (1.0 + std::exp(-x));
 }
 
-void forwardpropagation(RN network, int *inputs, int inputsize){
+void forwardpropagation(RN &network, int *inputs, int inputsize){
     float agregation = 0;
 
     for(int i=0; i< network.couches[0].nombre_neurones; i++){
-        for(int j=0; j<inputsize;j++){
+        for(int j=0; j<inputsize; j++){
             agregation += inputs[j]*network.couches[0].neurones[i].poids[j];
         }
         agregation += network.couches[0].neurones[i].biais;
@@ -71,10 +72,12 @@ void forwardpropagation(RN network, int *inputs, int inputsize){
         network.couches[0].neurones[i].sortie = sigmoid(agregation);
     }
 
-    for(i=1; i< network.nombre_couches; i++){
-        for(int j=0; i< network.couches[0].nombre_neurones; j++){
-            
-            
+    for(int i=1; i< network.nombre_couches; i++){
+        for(int j=0; j< network.couches[i].nombre_neurones; j++){
+            for(int k=0; k<network.couches[i-1].nombre_neurones; k++){
+                agregation += network.couches[i-1].neurones[k].sortie*network.couches[i].neurones[j].poids[k];
+            }
+
             agregation += network.couches[i].neurones[j].biais;
 
             network.couches[i].neurones[j].sortie = sigmoid(agregation);
