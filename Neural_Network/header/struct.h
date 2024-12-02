@@ -5,6 +5,7 @@ struct Neuron{
     float *poids;
     float biais;
     float sortie;
+    float error;
 };
 
 typedef struct Neuron Neuron;

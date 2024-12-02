@@ -8,6 +8,7 @@
 
 using namespace std;
 
+//Initialisation d'une couche
 void init_layer(Couche &layer,int nbr_neurones, int nbr_poids){
     srand((time(0)));
 
@@ -28,6 +29,7 @@ void init_layer(Couche &layer,int nbr_neurones, int nbr_poids){
     layer.nombre_poids = nbr_poids;
 }
 
+//Liberation de la mémoire d'une couche
 void release_layer(Couche &layer, int nbr_neurones){
     for (int i = 0; i < nbr_neurones; ++i) {
         delete layer.neurones[i].poids;
@@ -36,15 +38,17 @@ void release_layer(Couche &layer, int nbr_neurones){
     delete[] layer.neurones;
 }
 
-void init_NN(RN &network, int *nbr_neurones, int nbr_couche, int inputsize){
+//initialisation du réseau de neurones
+void init_NN(RN &network, int *nbr_neurones, int nbr_couche){
     network.nombre_couches = nbr_couche;
 
-    init_layer(network.couches[0], nbr_neurones[0], inputsize);
+    init_layer(network.couches[i], nbr_neurones[i], nbr_neurones[i]);
     for(int i=1; i<nbr_couche; i++){
         init_layer(network.couches[i], nbr_neurones[i], nbr_neurones[i-1]);
     }
 }
 
+//Affichage de tous les poids
 void afficher(RN network){
     for(int i=0; i<network.nombre_couches; i++){
         for(int j=0; i<network.couches[i].nombre_neurones; j++){
@@ -56,22 +60,21 @@ void afficher(RN network){
     }
 }
 
+//Fonction sigmoïde
 float sigmoid(float x){
     return 1.0 / (1.0 + std::exp(-x));
 }
 
-void forwardpropagation(RN &network, int *inputs, int inputsize){
-    float agregation = 0;
+//Propagation avant
+void forwardpropagation(RN &network, int *inputs){
+    float agregation = 0.0f;
 
+    //Sortie de la première couche ou couche d'entrée
     for(int i=0; i< network.couches[0].nombre_neurones; i++){
-        for(int j=0; j<inputsize; j++){
-            agregation += inputs[j]*network.couches[0].neurones[i].poids[j];
-        }
-        agregation += network.couches[0].neurones[i].biais;
-
-        network.couches[0].neurones[i].sortie = sigmoid(agregation);
+        network.couches[0].neurones[i].sortie = inputs[i];
     }
 
+    //Propogation sur les couche restantes
     for(int i=1; i< network.nombre_couches; i++){
         for(int j=0; j< network.couches[i].nombre_neurones; j++){
             for(int k=0; k<network.couches[i-1].nombre_neurones; k++){
@@ -82,5 +85,25 @@ void forwardpropagation(RN &network, int *inputs, int inputsize){
 
             network.couches[i].neurones[j].sortie = sigmoid(agregation);
         }
+    }
+}
+
+//Erreur quadratique moyenne
+float MSE(int *real, int *predicted, int N){
+    float mse = 0.0f;
+
+    for(int i=0; i < N; i++){
+        float error = real[i] - predicted[i];
+        mse += error * error;
+    }
+
+    return mse / N;
+}
+
+//Retropropagation
+void backpropagation(RN &network, int *real, float learning_rate){
+    //calcul de l'érreur pour la couche de sortie
+    for(int i=0; i < network.couche[network.nombre_couches - 1].nombre_neurones; n++){
+        
     }
 }
