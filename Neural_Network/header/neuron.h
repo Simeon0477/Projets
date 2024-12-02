@@ -5,6 +5,8 @@
 
 void init_layer(Couche &layer,int nbr_neurones, int nbr_poids);
 void release_layer(Couche &layer, int nbr_neurones);
-void init_NN(RN &network, int *nbr_neurones, int nbr_couche, int *nbr_poids);
+void init_NN(RN &network, int *nbr_neurones, int nbr_couche, int nbr_input);
+float sigmoid(float x);
+float forwardpropagation(RN network, int *inputs, int inputsize);
 
 #endif 
