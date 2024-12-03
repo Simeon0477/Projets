@@ -1,8 +1,3 @@
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
-#include <cmath>
-
 #include "../header/struct.h"
 #include "../header/neuron.h"
 
@@ -30,12 +25,21 @@ void init_layer(Couche &layer,int nbr_neurones, int nbr_poids){
 }
 
 //Liberation de la mémoire d'une couche
-void release_layer(Couche &layer, int nbr_neurones){
-    for (int i = 0; i < nbr_neurones; ++i) {
+void release_layer(Couche &layer){
+    for (int i = 0; i < layer.nombre_neurones; ++i) {
         delete layer.neurones[i].poids;
     }
 
     delete[] layer.neurones;
+    layer.neurones = nullptr;
+}
+
+void release_network(RN &network){
+    for(int i=0; i < network.nombre_couches; i++){
+        release_layer(network.couches[i]);
+    }
+    delete[] network.couches;
+    network.couches = nullptr;
 }
 
 //initialisation du réseau de neurones
@@ -89,7 +93,7 @@ void forwardpropagation(RN &network, int *inputs){
 }
 
 //Erreur quadratique moyenne
-float MSE(int *real, int *predicted, int N){
+float MSE(int *real, float *predicted, int N){
     float mse = 0.0f;
 
     for(int i=0; i < N; i++){
@@ -101,7 +105,7 @@ float MSE(int *real, int *predicted, int N){
 }
 
 //Retropropagation
-void backpropagation(RN &network, int *real, float learning_rate){
+void backpropagation(RN &network, int real, float learning_rate){
     int ind_sortie = network.nombre_couches - 1;
 
     //calcul de l'érreur pour la couche de sortie
@@ -109,7 +113,7 @@ void backpropagation(RN &network, int *real, float learning_rate){
         Neuron *neuron = &network.couches[ind_sortie].neurones[i];
         float sortie = network.couches[ind_sortie].neurones[i].sortie;
 
-        neuron->error = (sortie - real[i]) * sortie * (1 - sortie);
+        neuron->error = (sortie - real) * sortie * (1 - sortie);
     }
 
     //Rétropropagation
