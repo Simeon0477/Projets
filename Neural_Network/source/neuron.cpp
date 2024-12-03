@@ -42,7 +42,7 @@ void release_layer(Couche &layer, int nbr_neurones){
 void init_NN(RN &network, int *nbr_neurones, int nbr_couche){
     network.nombre_couches = nbr_couche;
 
-    init_layer(network.couches[i], nbr_neurones[i], nbr_neurones[i]);
+    init_layer(network.couches[0], nbr_neurones[0], nbr_neurones[0]);
     for(int i=1; i<nbr_couche; i++){
         init_layer(network.couches[i], nbr_neurones[i], nbr_neurones[i-1]);
     }
@@ -102,8 +102,40 @@ float MSE(int *real, int *predicted, int N){
 
 //Retropropagation
 void backpropagation(RN &network, int *real, float learning_rate){
+    int ind_sortie = network.nombre_couches - 1;
+
     //calcul de l'érreur pour la couche de sortie
-    for(int i=0; i < network.couche[network.nombre_couches - 1].nombre_neurones; n++){
-        
+    for(int i=0; i < network.couches[ind_sortie].nombre_neurones; i++){
+        Neuron *neuron = &network.couches[ind_sortie].neurones[i];
+        float sortie = network.couches[ind_sortie].neurones[i].sortie;
+
+        neuron->error = (sortie - real[i]) * sortie * (1 - sortie);
+    }
+
+    //Rétropropagation
+    for(int i=ind_sortie - 1; i>=0; i--){
+        for(int j=0; j < network.couches[i].nombre_neurones; j++){
+            float somme_erreurs = 0.0f;
+
+            //Calcul de l'erreur propagée
+            for(int k=0; k < network.couches[i+1].nombre_neurones; k++){
+                somme_erreurs += network.couches[i+1].neurones[k].poids[j] * network.couches[i+1].neurones[k].error;
+            }
+
+            network.couches[i].neurones[j].error = somme_erreurs * network.couches[i].neurones[j].sortie * (1 - network.couches[i].neurones[j].sortie);
+        }
+    }
+
+    //Mise à jour des poids et des biais
+    for(int i=1; i<network.nombre_couches; i++){
+        for(int j=0; j<network.couches[i].nombre_neurones; j++){
+            //Mettre à jour les poids
+            for(int k=0; k<network.couches[i-1].nombre_neurones; k++){
+                network.couches[i].neurones[j].poids[k] -= learning_rate * network.couches[i].neurones[j].error * network.couches[i-1].neurones[k].sortie;
+            }
+
+            //Mettre à jour les biais
+            network.couches[i].neurones[j].biais -= learning_rate * network.couches[i].neurones[j].error;
+        }
     }
 }
