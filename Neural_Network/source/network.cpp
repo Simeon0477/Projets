@@ -45,6 +45,7 @@ void release_network(RN &network){
 //initialisation du réseau de neurones
 void init_NN(RN &network, int *nbr_neurones, int nbr_couche){
     network.nombre_couches = nbr_couche;
+    network.couches = new Couche[nbr_couche];
 
     init_layer(network.couches[0], nbr_neurones[0], nbr_neurones[0]);
     for(int i=1; i<nbr_couche; i++){
@@ -66,28 +67,35 @@ void afficher(RN network){
 
 //Fonction sigmoïde
 float sigmoid(float x){
-    return 1.0 / (1.0 + std::exp(-x));
+    return 1.0 / (1.0 + exp(-x));
 }
 
 //Propagation avant
-void forwardpropagation(RN &network, int *inputs){
-    float agregation = 0.0f;
-
+void forwardpropagation(RN *network, int *inputs){
     //Sortie de la première couche ou couche d'entrée
-    for(int i=0; i< network.couches[0].nombre_neurones; i++){
-        network.couches[0].neurones[i].sortie = inputs[i];
+    for(int i=0; i< network->couches[0].nombre_neurones; i++){
+        network->couches[0].neurones[i].sortie = inputs[i];
     }
 
     //Propogation sur les couche restantes
-    for(int i=1; i< network.nombre_couches; i++){
-        for(int j=0; j< network.couches[i].nombre_neurones; j++){
-            for(int k=0; k<network.couches[i-1].nombre_neurones; k++){
-                agregation += network.couches[i-1].neurones[k].sortie*network.couches[i].neurones[j].poids[k];
+    for(int i=1; i< network->nombre_couches; i++){
+        Couche* actu_layer = &network->couches[i];
+        Couche* previous_layer = &network->couches[i - 1];
+
+        for(int j=0; j< actu_layer->nombre_neurones; j++){
+            Neuron* neuron = &actu_layer->neurones[j];
+
+            //Fonction d'agragation
+            float agregation = 0.0f;
+
+            for(int k=0; k<previous_layer->nombre_neurones; k++){
+                agregation += previous_layer->neurones[k].sortie*neuron->poids[k];
             }
 
-            agregation += network.couches[i].neurones[j].biais;
+            agregation += neuron->biais;
 
-            network.couches[i].neurones[j].sortie = sigmoid(agregation);
+            //Application de la fonction d'activation
+            neuron->sortie = sigmoid(agregation);
         }
     }
 }
@@ -105,41 +113,50 @@ float MSE(int *real, float *predicted, int N){
 }
 
 //Retropropagation
-void backpropagation(RN &network, int real, float learning_rate){
-    int ind_sortie = network.nombre_couches - 1;
+void backpropagation(RN *network, int real, float learning_rate){
+    int ind_sortie = network->nombre_couches - 1;
 
     //calcul de l'érreur pour la couche de sortie
-    for(int i=0; i < network.couches[ind_sortie].nombre_neurones; i++){
-        Neuron *neuron = &network.couches[ind_sortie].neurones[i];
-        float sortie = network.couches[ind_sortie].neurones[i].sortie;
+    for(int i=0; i < network->couches[ind_sortie].nombre_neurones; i++){
+        Neuron *neuron = &network->couches[ind_sortie].neurones[i];
+        float sortie = neuron->sortie;
 
         neuron->error = (sortie - real) * sortie * (1 - sortie);
     }
 
     //Rétropropagation
     for(int i=ind_sortie - 1; i>=0; i--){
-        for(int j=0; j < network.couches[i].nombre_neurones; j++){
+        Couche* actu_layer = &network->couches[i];
+        Couche* next_layer = &network->couches[i + 1];
+
+        for(int j=0; j < actu_layer->nombre_neurones; j++){
+            Neuron* neuron = &actu_layer->neurones[j];
             float somme_erreurs = 0.0f;
 
             //Calcul de l'erreur propagée
-            for(int k=0; k < network.couches[i+1].nombre_neurones; k++){
-                somme_erreurs += network.couches[i+1].neurones[k].poids[j] * network.couches[i+1].neurones[k].error;
+            for(int k=0; k < next_layer->nombre_neurones; k++){
+                somme_erreurs += next_layer->neurones[k].poids[j] * next_layer->neurones[k].error;
             }
 
-            network.couches[i].neurones[j].error = somme_erreurs * network.couches[i].neurones[j].sortie * (1 - network.couches[i].neurones[j].sortie);
+            neuron->error = somme_erreurs * neuron->sortie * (1 - neuron->sortie);
         }
     }
 
     //Mise à jour des poids et des biais
-    for(int i=1; i<network.nombre_couches; i++){
-        for(int j=0; j<network.couches[i].nombre_neurones; j++){
+    for(int i=1; i<network->nombre_couches; i++){
+        Couche* actu_layer = &network->couches[i];
+        Couche* previous_layer = &network->couches[i - 1];
+
+        for(int j=0; j<actu_layer->nombre_neurones; j++){
+            Neuron* neuron = &actu_layer->neurones[j];
+
             //Mettre à jour les poids
-            for(int k=0; k<network.couches[i-1].nombre_neurones; k++){
-                network.couches[i].neurones[j].poids[k] -= learning_rate * network.couches[i].neurones[j].error * network.couches[i-1].neurones[k].sortie;
+            for(int k=0; k<previous_layer->nombre_neurones; k++){
+                neuron->poids[k] -= learning_rate * neuron->error * previous_layer->neurones[k].sortie;
             }
 
             //Mettre à jour les biais
-            network.couches[i].neurones[j].biais -= learning_rate * network.couches[i].neurones[j].error;
+            neuron->biais -= learning_rate * neuron->error;
         }
     }
 }

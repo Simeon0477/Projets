@@ -15,24 +15,22 @@ void train(){
 
     float error = 1.0f;
     float outputs[4];
-    while(error > 0.01){
+    while(error > 0.242204){
         //Propagation avant
         for(int i=0; i <4; i++){
-            forwardpropagation(network, X[i]);
+            forwardpropagation(&network, X[i]);
             outputs[i] = network.couches[2].neurones[0].sortie;
         }
 
         //Retropropagation
         for(int i=0; i <4; i++){
-            backpropagation(network, y[i], 0.1);
+            backpropagation(&network, y[i], 0.1);
         }
 
         //Calcul de l'erreur
         error = MSE(y, outputs, 4);
 
         cout << "la MSE est de : " << error <<endl;
-
-        release_network(network);
     }
 }
 
